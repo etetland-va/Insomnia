@@ -570,6 +570,67 @@ class App extends PureComponent {
     this.props.handleStopLoading(requestId);
   }
 
+  async _runOne(request, environmentId) {
+    let response;
+    try {
+      response = await network.send(request._id, environmentId);
+    } catch (err) {
+      showAlert({
+        title: 'Unexpected Request Failure',
+        message: (
+          <div>
+            <p>The request failed due to an unhandled error:</p>
+            <code className="wide selectable">
+              <pre>{err.message}</pre>
+            </code>
+          </div>
+        ),
+      });
+    }
+    showAlert({
+      title: 'Running requests',
+      message: (
+        <div>
+          <code className="wide selectable">
+            <pre>
+              {request.name} got status code: {response.statusCode}
+            </pre>
+          </code>
+        </div>
+      ),
+    });
+    return response;
+  }
+
+  async _runRequestGroup(requestGroup) {
+    const { activeEnvironment } = this.props;
+    const environmentId = activeEnvironment ? activeEnvironment._id : 'n/a';
+    const requests = await models.request.findByParentId(requestGroup._id);
+    const responses = [];
+    for (const req of requests) {
+      let response;
+      response = await this._runOne(req, environmentId);
+      responses.push(response);
+    }
+    let resultHtml = '<table><tr><th>Request</th><th>Status Code</th></tr>';
+    for (let i = 0; i < responses.length; i++) {
+      const name = requests[i].name.replace(/[^A-Za-z0-9 ]/g, '');
+      const statusCode = responses[i].statusCode;
+      resultHtml += '<tr><td>' + name + '</td><td>' + statusCode + '</td></tr>';
+    }
+    resultHtml += '</table>';
+    showAlert({
+      title: 'Run results',
+      message: (
+        <div>
+          <code className="wide selectable">
+            <span dangerouslySetInnerHTML={{ __html: resultHtml }} />
+          </code>
+        </div>
+      ),
+    });
+  }
+
   async _handleSendRequestWithEnvironment(requestId, environmentId) {
     const request = await models.request.getById(requestId);
     if (!request) {
@@ -997,6 +1058,7 @@ class App extends PureComponent {
               handleDuplicateRequest={this._requestDuplicate}
               handleDuplicateRequestGroup={this._requestGroupDuplicate}
               handleMoveRequestGroup={this._requestGroupMove}
+              handleStartRunner={this._runRequestGroup}
               handleDuplicateWorkspace={this._workspaceDuplicate}
               handleCreateRequestGroup={this._requestGroupCreate}
               handleGenerateCode={this._handleGenerateCode}

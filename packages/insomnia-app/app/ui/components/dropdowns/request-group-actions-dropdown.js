@@ -44,6 +44,10 @@ class RequestGroupActionsDropdown extends PureComponent {
     this.props.handleMoveRequestGroup(this.props.requestGroup);
   }
 
+  _handleStartRunner() {
+    this.props.handleStartRunner(this.props.requestGroup);
+  }
+
   async _handleRequestGroupCreate() {
     this.props.handleCreateRequestGroup(this.props.requestGroup._id);
   }
@@ -92,6 +96,9 @@ class RequestGroupActionsDropdown extends PureComponent {
         <DropdownItem onClick={this._handleRequestGroupMove}>
           <i className="fa fa-exchange" /> Move
         </DropdownItem>
+        <DropdownItem onClick={this._handleStartRunner}>
+          <i className="fa fa-coffee" /> Start Runner (Run All)
+        </DropdownItem>
         <DropdownItem buttonClass={PromptButton} addIcon onClick={this._handleDeleteFolder}>
           <i className="fa fa-trash-o" /> Delete
         </DropdownItem>
@@ -106,6 +113,7 @@ RequestGroupActionsDropdown.propTypes = {
   handleCreateRequestGroup: PropTypes.func.isRequired,
   handleDuplicateRequestGroup: PropTypes.func.isRequired,
   handleMoveRequestGroup: PropTypes.func.isRequired,
+  handleStartRunner: PropTypes.func.isRequired,
 
   // Optional
   requestGroup: PropTypes.object,
